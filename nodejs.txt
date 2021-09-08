@@ -1,0 +1,152 @@
+nodejs
+
+- http://127.0.0.1:3000/update ; 즉 domain/update   =   /update
+- process 페이지는 내부적으로 어떤 처리를 하는 페이지여서 사용자는 process페이지의 볼 수 없음
+- 이해하기 어려우면 node.js-37.App 의 오픈코드 보기 (함수를 객체화하기 전 코드; 리펙토링과 보안처리 하기 전 코드)
+    - 파일리스트 가져오는 readdir 함수 가져다쓰기
+    - 파일리스트의 각 내용 가져오는 readFile 함수 가져다쓰기
+    - nodejs 문서 참조 : 원하는 함수 골라보기!
+- nodejs awesome : nodejs module
+- main_sql.js : nodejs + mysql
+  compare main_sql.js with main.js 
+
+1. nodejs 실행방법 :
+    1. 커맨드창에서 해당폴더로 위치변경
+    2. node main.js
+    3. Enter 127.0.0.1:3000 or localhostL3000 in url
+        ( 3000인 이유는 app.listen(3000); 
+        서버가 3000포트를 듣고 있음/에 열결되어 있음. 따라서 웹브라우저에서 3000포트로 가면 이 서버로 연결됨)
+    * when you update your nodejs file, you have to restart nodojs
+1-2. 커맨드에서 node 실행하고 사용하는 법
+    1. node
+    2. console.log(1);
+    
+2. Turn off nodejs which is running as webserver :
+    ctrl + c
+        -> localhost:3000를 입력한 url의 페이지가 실행x.
+            ( 3000인 이유는 app.listen(3000); )
+
+3. 같은 파일에서 다른 페이지들 : url에서 ?(쿼리스트링)
+    ?id=html 에서 id 값을 알아내는 법 :
+        request.url; // >> 쿼리스트링 
+        그리고 이 url안에 있는 값을 추출해서 원하는 값 얻어내는 방법 
+        ; url 분석(parse)해서 추출하는 방법
+            var queryData = url.parse(request.url, true).query; 
+                >> { id: 'HTML' }  because queryData is a obj.
+            console.log(queryData.id); 
+                >> HTMl
+
+4. "response.end" is similar to "document.write". 
+    The difference is that only this code is ran among script :
+        response.end(fs.readFileSync(__dirname + _url)); 
+            // () 아래 있음
+            // 웹에서 1.html 링크를 클릭하면 (->url: localhost:3000/1.html)  
+                main.js 디렉토리에 있는 1.html 파일의 내용이 웹에 출력됨.
+
+            console.log(__dirname + url);
+                // >> C:\Users\USER\Desktop\nodejs/1.html C:\Users\USER\Desktop\nodejs/coding.jpg (on cmd)
+                // because the current url is "127.0.0.1:3000/1.html" on Chrome and there is a image. 
+                // So if you click '3.javascript' link, >> C:\Users\USER\Desktop\nodejs/3.html
+                // ; __dirname (=C:\Users\USER\Desktop\nodejs) is a directory of main.js  // + url ??ok
+
+5. how to read files in nodejs
+    refer to fileread.js
+
+    쿼리스트링 값에 따라 data directory에 있는 필요한 파일을 읽어서 main.js의 본문 부분인 <p></p>에 넣어줌
+
+main.js에서 if문
+사용자가 쿼리스트링이 없는 홈으로 들어왔을 때는 welcome페이지 출력,  사용자가 목록을 클릭해서 id값이 있는 주소로 접속하면 그에 맞는 페이지 출력,  그 외의 존재하지 않는 id값으로 접속하면 오류메세지 출력
+사용자가 root (=localhost3000)로 접속했는가
+
+6. 파일목록 동적으로 알아내기
+    read directory instead <ol>
+                            <li><a href="/?id=HTML">HTML</a></li>
+                            <li><a href="/?id=CSS">CSS</a></li>
+                            <li><a href="/?id=JAVASCRIPT">JavaScript</a></li>
+                        </ol>
+    var testFloder = './data';
+    var fs = require('fs');
+
+    fs.readdir(testFloder, function(error, filelist)){
+        console.log(filelist); // arr / refresh web
+    }
+
+7. synchronous & asynchronous 동기와 비동기
+    전자는 순서대로(기다리는 동안 다음거 못함) 후자는 능률적으로
+    ex) fs.readFileSync(path[, options])  &  fs.readFile(path[, options], callback) 
+        전자는 리턴값을 주므로 변수에 담을 수 있고
+        후자는 리턴값이 아니므로 콜백함수를 세번째 인자로 줘야함. nodejs가 첫번째 인자인 파일을 읽는 작업이 끝나면 세번째 인자로 준 콜백함수를 실행. 콜백의 첫번째 인자는 에러, 두번째는 파일의 내용
+        fs.fuction(where ,callback) 이런 형태는 그 함수가 성공적으로 실행(readfile파일을 읽거나 unlink제거하거나) 되면 콜백함수의 {}을 실행, 실패시 콜랙의 첫번째 인자인 에러 표시 (이 강의에서는 에러 처리x)
+
+        //readFileSync
+        console.log('A');
+        var result = fs.readFileSync('syntax/sample.txt, 'utf8'); // The 2nd arg is an option to read for people
+        console.log(result);
+        console.log('C');
+        // >> ABC
+
+        // readFile
+        console.log('A');
+        fs.readFile('syntax/sample.txt, 'utf8', function(err, result){
+            console.log(result);
+        });
+        console.log('C');
+        // >> ACB
+        // : the 1st arg will be a file name / function( Name freely ) / when you update the files, you don't have to restart node because whenever website refreshed, web read the files 
+
+8. PM2
+    cmd에 node main.js를 했는데 어떤 이유로 꺼질수도 있음
+    pm2 start main.js --watch : pm2가 감시하다가 꺼지면 다시켜주고 파일이 수정되면 껐다 켜줌 (웹 리로드는 해야함)
+        [PM2][ERROR] Script already launched, add -f option to force re-execution  이런 에러가 띄면 pm2 start main.js 후 pm2 stop main 했는지 체크
+        node main.js와 달리 에러는 안보여줌 따라서 pm2 log 입력 : 문서가 바뀔때도 알려줌
+    cmd에 node main.js 대신 pm2 start main.js
+        name에 main은 main.js의 별명
+        status가 online이면 실행중이라는 뜻
+    
+    pm2 monit : 모니터링; 어떤게 실행중인지/ 나가고 싶으면 q
+    pm2 list : 실행중인 프로세스 (main.js)
+        pm2 stop main(Name 중 끄고 싶은거) 하면 main의 status가 stopped로 바뀜
+
+9. other ways in the app var
+    // if(_url == '/'){ // 쿼리스트링이 없을 때; 메인페이지; root; localhost3000
+    //   title = 'Welocome';
+    // }
+    // if(_url == '/favicon.ico'){ // a non-existent page
+    //   return response.writeHead(404);
+    // }
+
+    // console.log(__dirname + url);
+        // >> C:\Users\USER\Desktop\nodejs/1.html C:\Users\USER\Desktop\nodejs/coding.jpg (on cmd)
+        // because the current url is "127.0.0.1:3000/1.html" on Chrome and there is a image. 
+        // So if you click '3.javascript' link, >> C:\Users\USER\Desktop\nodejs/3.html
+        // ; __dirname (=C:\Users\USER\Desktop\nodejs) is a directory of main.js   // + url ??ok
+    //  "response.end" is similar to "document.write". The difference is that only this code is ran among script
+    // response.end(fs.readFileSync(__dirname + _url)); // 웹에서 1.html 링크를 클릭하면 (->url: localhost:3000/1.html)  main.js 디렉토리에 있는 1.html 파일의 내용이 웹에 출력됨
+        // response.end('egoing :'+url); //웹페이지에서 3.html 링크를 클릭하면 웹페이지에 egoing : /3.html 이 출력됨 
+        // response.end(queryData.id); >> HTMl  (on web)
+
+10. createServer
+Whenever a web browser connect to Nodejs, the callback function of createServer is called by nodejs/ (info sent by the web browser when requested, info to send to the web browser when responding)
+ 
+    = http.createServer().listen()
+
+    http.createServer((req, res) => {
+
+    }) // abbreviation
+    =
+    http.createServer(function(req, res){
+
+    })
+
+11. hidden type input
+To prepare a user for changing the title. 제목을 css에서 css3로 바꾸고 제출을 하면 hidden에는 css가, title에는 css3가 update_proces 페이지로 전송이 되고, 거기서 data폴더에 있는 css 제목을 css3로 바꾸는 작업을 함. hidden input이 없으면 css를 data폴더에서 찾을 수 없음. 사용자가 업데이트 할 때 제목을 바꿔서, title변수가 바꼈기 때문에  So update_process page can receive the file's name to update [can receive the Unmodified file's name] among data folder  to change like css to css3. you can check 'id is css' and 'title is css3' in Headers of Network
+
+12. 보안처리 : ../ 세탁[제거]
+path.parse().base: path.parse()는 ( path )를 분석. parse메소드[함수]에서 base는 ( path )의 상위디렉토리(.../)표시 배제(; ../file.js -> file.js)
+
+13. XSS 공격 보안 처리 - senitize-html
+<script>에서 꺽새의 문법기능 없애기
+    1. (cmd 내 프로젝트에서) npm init
+    2. ok?까지 엔터 누르기
+    3. npm install -S sanitize-html : S는 이 프로젝트/폴더에서만 설치 cf) G(global)
+    4. 포기
