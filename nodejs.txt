@@ -146,7 +146,16 @@ path.parse().base: path.parse()는 ( path )를 분석. parse메소드[함수]에
 
 13. XSS 공격 보안 처리 - senitize-html
 <script>에서 꺽새의 문법기능 없애기
-    1. (cmd 내 프로젝트에서) npm init
+    1. (cmd 내 프로젝트에서) npm init (to get a package.json file)
     2. ok?까지 엔터 누르기
     3. npm install -S sanitize-html : S는 이 프로젝트/폴더에서만 설치 cf) G(global)
     4. 포기
+
+14. npm
+   www.npmjs.com
+   * N.B. : Before installing a module only for the first time with the option, --save, 
+             run 'npm init' 
+             and press enter key several times
+             then you can check a package.json file 
+   If you have a package.json and don't have a node_modules folder, run "$ npm install". Then npm download items of dependencies of package.json  in a node_modules folder
+   * If you have any problem about installing anything, open new terminal
